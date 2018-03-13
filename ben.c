@@ -157,18 +157,23 @@ size_t sign_prop(const char prop[], BenKeys *pkeys, void *sig, size_t sigLen)
     return sigLen;
 }
 
-size_t sign_tx(const char tx_script[], BenKeys *pKeys, const char path[], void *sig, size_t sigLen)
+void make_tx_key(BRKey *txkey, const char path[], BenKeys *pKeys)
 {
-    size_t txLen = strlen(tx_script)/2;
-    printf("TX Len: %zu \n", txLen);
-
-    unsigned char txval[txLen];
-    printf("SIGN TX  WITH BRKeySign\n");
-
     printf("Path %s\n", path);
     int change, address_index;
     sscanf(path, "m/%d/%d/", &change, &address_index); 
     printf("Change = %d Address Index = %d\n", change, address_index);
+
+    BRBIP32PrivKeyPath(txkey, pKeys->seed.u8, sizeof(pKeys->seed), 3, 0 | BIP32_HARD, change, address_index);
+}
+
+
+size_t sign_tx(const char tx_script[], BenKeys *pKeys, const char path[], void *sig, size_t sigLen)
+{
+    printf("SIGN TX  WITH BRKeySign\n");
+
+    size_t txLen = strlen(tx_script)/2;
+    unsigned char txval[txLen];
 
     hex_to_bytes(tx_script, txval, txLen);    
 
@@ -178,15 +183,14 @@ size_t sign_tx(const char tx_script[], BenKeys *pKeys, const char path[], void *
  
     UInt32SetLE(&txval_data[txLen], 0x01 ); // hash type (SIGHASH_ALL)
 
+    // Hash the raw transaction
     UInt256 txmd;
     BRSHA256_2(&txmd, txval_data, txLen+4);
-    printf("\nTxMD Hash: %s\n", u256hex(txmd));
 
-    // Make key for path
+    // Make key for path and sign
     BRKey tx1;
-    BRBIP32PrivKeyPath(&tx1, pKeys->seed.u8, sizeof(pKeys->seed), 3, 0 | BIP32_HARD, change, address_index);
+    make_tx_key(&tx1, path, pKeys);
     sigLen = BRKeySign(&tx1, sig, sigLen, txmd);
-    printf("Transaction Signature\n");
  
     return sigLen;
 }
@@ -200,10 +204,6 @@ void sign_tx_with_bw(const char tx_script[], BenKeys *pKeys, const char path[])
     size_t txLen = strlen(tx_script);
     unsigned char txval[txLen];
 
-    int change, address_index;
-    sscanf(path, "m/%d/%d/", &change, &address_index); 
-    printf("Change = %d Address Index = %d\n", change, address_index);
-
     hex_to_bytes(tx_script, txval, txLen);    
     printf("PARSE TX WITH SCRIPT\n");
     BRTransaction *tx = BRTransactionParse(txval, txLen);
@@ -211,8 +211,8 @@ void sign_tx_with_bw(const char tx_script[], BenKeys *pKeys, const char path[])
     printf("Input 0 Script Len: %zu\n", tx->inputs[0].scriptLen);
 
     printf("SIGN TX WITH BRTransactionSign\n");
-    BRKey tx1, tx2;
-    BRBIP32PrivKeyPath(&tx1, pKeys->seed.u8, sizeof(pKeys->seed), 3, 0 | BIP32_HARD, change, address_index);
+    BRKey tx1;
+    make_tx_key(&tx1, path, pKeys);
     BRKey txkeys[1];
     txkeys[0] = tx1;
     BRTransactionSign(tx, 0, txkeys, 1); 
@@ -226,7 +226,7 @@ void sign_tx_with_bw(const char tx_script[], BenKeys *pKeys, const char path[])
     printf("%zu\n", bufLen);
     uint8_t txbuf[bufLen];
     bufLen = BRTransactionSerialize(tx, txbuf, bufLen);
-    //print_hex(txbuf, bufLen);
+    print_hex(txbuf, bufLen);
 }
 
 

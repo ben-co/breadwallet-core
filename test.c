@@ -2675,7 +2675,7 @@ void txStatusUpdate(void *info)
     printf("transaction status updated\n");
 }
 
-int main(int argc, const char *argv[])
+int test_main(int argc, const char *argv[])
 {
     int r = BRRunTests();
     

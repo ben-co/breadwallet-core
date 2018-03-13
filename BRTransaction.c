@@ -121,10 +121,10 @@ static size_t _BRTxInputData(const BRTxInput *input, uint8_t *data, size_t dataL
     if (data && off + input->sigLen <= dataLen) memcpy(&data[off], input->signature, input->sigLen); // scriptSig
     off += input->sigLen;
 
-    if (input->amount != 0) {
-        if (data && off + sizeof(uint64_t) <= dataLen) UInt64SetLE(&data[off], input->amount);
-        off += sizeof(uint64_t);
-    }
+    //if (input->amount != 0) {
+        //if (data && off + sizeof(uint64_t) <= dataLen) UInt64SetLE(&data[off], input->amount);
+        //off += sizeof(uint64_t);
+    //}
 
     if (data && off + sizeof(uint32_t) <= dataLen) UInt32SetLE(&data[off], input->sequence);
     off += sizeof(uint32_t);
@@ -367,7 +367,6 @@ BRTransaction *BRTransactionParse(const uint8_t *buf, size_t bufLen)
 {
     assert(buf != NULL || bufLen == 0);
     if (! buf) return NULL;
-    
     int isSigned = 1;
     size_t i, off = 0, sLen = 0, len = 0;
     BRTransaction *tx = BRTransactionNew();
@@ -391,8 +390,8 @@ BRTransaction *BRTransactionParse(const uint8_t *buf, size_t bufLen)
         
         if (off + sLen <= bufLen && BRAddressFromScriptPubKey(NULL, 0, &buf[off], sLen) > 0) {
             BRTxInputSetScript(input, &buf[off], sLen);
-            input->amount = (off + sLen + sizeof(uint64_t) <= bufLen) ? UInt64GetLE(&buf[off + sLen]) : 0;
-            off += sizeof(uint64_t);
+            //input->amount = (off + sLen + sizeof(uint64_t) <= bufLen) ? UInt64GetLE(&buf[off + sLen]) : 0;
+            //off += sizeof(uint64_t);
             isSigned = 0;
         }
         else if (off + sLen <= bufLen) BRTxInputSetSignature(input, &buf[off], sLen);
