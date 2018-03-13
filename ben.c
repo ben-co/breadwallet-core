@@ -30,14 +30,6 @@
 
 #define SKIP_BIP38 1
 
-#ifdef __ANDROID__
-#include <android/log.h>
-#define fprintf(...) __android_log_print(ANDROID_LOG_ERROR, "bread", _va_rest(__VA_ARGS__, NULL))
-#define printf(...) __android_log_print(ANDROID_LOG_INFO, "bread", __VA_ARGS__)
-#define _va_first(first, ...) first
-#define _va_rest(first, ...) __VA_ARGS__
-#endif
-
 #if BITCOIN_TESTNET
 #define BR_CHAIN_PARAMS BRTestNetParams
 #else
@@ -76,6 +68,7 @@ typedef struct
 } BenKeys;;
 
     
+// Make keys need by various parts of this process
 BenKeys make_keys(const char phrase[])
 {
     BRMasterPubKey mpk = BR_MASTER_PUBKEY_NONE;
@@ -117,6 +110,7 @@ void print_keys(BenKeys *pKeys)
     printf("authkeyPub:%02x%s\n", pKeys->authKey.pubKey[0], u256hex(*(UInt256 *)&(pKeys->authKey.pubKey[1])));
 }
 
+// Sign a hash value passed in as a hex string
 size_t sign_hash(const char hash[], BenKeys *pKeys, void *sig, size_t sigLen, int keyType)
 {
     unsigned char val[32];
@@ -137,6 +131,7 @@ size_t sign_hash(const char hash[], BenKeys *pKeys, void *sig, size_t sigLen, in
     return sigLen;
 }
 
+// Sign a transaction proposal
 size_t sign_prop(const char prop[], BenKeys *pkeys, void *sig, size_t sigLen)
 {
     size_t txLen = strlen(prop)/2;
@@ -157,6 +152,7 @@ size_t sign_prop(const char prop[], BenKeys *pkeys, void *sig, size_t sigLen)
     return sigLen;
 }
 
+// Make the transaction signing key given by path
 void make_tx_key(BRKey *txkey, const char path[], BenKeys *pKeys)
 {
     printf("Path %s\n", path);
@@ -168,6 +164,7 @@ void make_tx_key(BRKey *txkey, const char path[], BenKeys *pKeys)
 }
 
 
+// Sign a transaction
 size_t sign_tx(const char tx_script[], BenKeys *pKeys, const char path[], void *sig, size_t sigLen)
 {
     printf("SIGN TX  WITH BRKeySign\n");
@@ -196,6 +193,7 @@ size_t sign_tx(const char tx_script[], BenKeys *pKeys, const char path[], void *
 }
 
 
+// Failed attempt an transaction signing with BRTransactionSign
 void sign_tx_with_bw(const char tx_script[], BenKeys *pKeys, const char path[])
 {
     uint8_t sig[72];
@@ -234,7 +232,6 @@ int main(int argc, const char *argv[])
 {
     int err = 0;
     BRMasterPubKey mpk = BR_MASTER_PUBKEY_NONE;
-    BRWallet *wallet;
     uint8_t sig[72];
     size_t sigLen;
 
