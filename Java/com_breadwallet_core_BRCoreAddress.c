@@ -148,8 +148,8 @@ JNIEXPORT jstring JNICALL Java_com_breadwallet_core_BRCoreAddress_bcashDecodeBit
     char bitcoinAddr[36 + 1];
 
     // returns the number of bytes written to bitcoinAddr36 (maximum of 36)
-    size_t bitcoinAddrLen = BRBCashAddrDecode (bitcoinAddr, bcashAddr);
-    bitcoinAddr[bitcoinAddrLen] = '\0';
+    // size_t bitcoinAddrLen = BRBCashAddrDecode (bitcoinAddr, bcashAddr);
+    // bitcoinAddr[bitcoinAddrLen] = '\0';
 
     return (*env)->NewStringUTF (env, bitcoinAddr);
 }
@@ -167,8 +167,8 @@ JNIEXPORT jstring JNICALL Java_com_breadwallet_core_BRCoreAddress_bcashEncodeBit
 
     // returns the number of bytes written to bCashAddr55 (maximum of 55)
 
-    size_t bcashAddrLen = BRBCashAddrEncode(bcashAddr, bitcoinAddr);
-    bcashAddr[bcashAddrLen] = '\0';
+    // size_t bcashAddrLen = BRBCashAddrEncode(bcashAddr, bitcoinAddr);
+    // bcashAddr[bcashAddrLen] = '\0';
 
     return (*env)->NewStringUTF (env, bcashAddr);
 }
